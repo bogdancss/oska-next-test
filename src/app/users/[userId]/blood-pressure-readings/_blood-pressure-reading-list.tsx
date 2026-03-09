@@ -1,4 +1,4 @@
-import type { BloodPressureReading } from "../../../../db/types";
+import type { BloodPressureReading } from "@/db/types";
 
 export function BloodPressureReadingListCardTitle({
   children,

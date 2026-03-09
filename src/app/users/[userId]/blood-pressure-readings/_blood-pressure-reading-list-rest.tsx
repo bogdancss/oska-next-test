@@ -1,26 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { BloodPressureReading } from "../../../../db/types";
+import { useCallback, useEffect, useState } from "react";
+import type { BloodPressureReading } from "@/db/types";
 import {
   deserializeBloodPressureReading,
   type SerializedBloodPressureReading,
-} from "../../../../utils/blood-pressure-readings";
+} from "@/utils/blood-pressure-readings";
 import {
   BloodPressureReadingListCard,
   BloodPressureReadingListCardTitle,
   BloodPressureReadingsList,
 } from "./_blood-pressure-reading-list";
 
-// NOTE: This is not what we consider best practice!
-// It's just a very rough first pass for communicating with the server via a
-// REST API to give you a head start if it's useful. Feel very free to ignore
-// this entirely and complete the tasks using your preferred library or
-// technique.
+const title = "Readings";
 
-const title = "REST";
+interface Props {
+  userId: number;
+  refreshSignal?: number;
+}
 
-export function BloodPressureReadingsRest({ userId }: { userId: number }) {
+export function BloodPressureReadingsRest({ userId, refreshSignal }: Props) {
   const [bloodPressureReadings, setBloodPressureReadings] = useState<
     BloodPressureReading[]
   >([]);
@@ -28,7 +27,7 @@ export function BloodPressureReadingsRest({ userId }: { userId: number }) {
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchReadings = useCallback(() => {
     fetch(`/api/users/${userId}/blood-pressure-readings`)
       .then((res) => res.json())
       .then((data: { items: SerializedBloodPressureReading[] }) => {
@@ -37,13 +36,17 @@ export function BloodPressureReadingsRest({ userId }: { userId: number }) {
         );
         setIsLoading(false);
       })
-      .catch((error) => {
+      .catch((err: unknown) => {
         setError(
-          error instanceof Error ? error : new Error("Something went wrong"),
+          err instanceof Error ? err : new Error("Something went wrong"),
         );
         setIsLoading(false);
       });
   }, [userId]);
+
+  useEffect(() => {
+    fetchReadings();
+  }, [fetchReadings, refreshSignal]);
 
   if (isLoading) {
     return (
